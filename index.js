@@ -6,7 +6,7 @@ const replaceStream = require('replacestream');
 const node_xml_stream = require('node-xml-stream');
 const parser = new node_xml_stream();
 const filename = process.argv[2];
-const isContextToegang == filename.indexOf("CON_")==0;
+const isContextToegang = filename.indexOf("CON_")==0;
 
 if (!filename) return console.log('usage: ./index.js input_xml_file');
 if (!fs.existsSync(filename)) return console.log('File not foud: ' + filename);
