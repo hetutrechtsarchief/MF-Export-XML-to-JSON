@@ -1,3 +1,4 @@
+# van MAIS Flexis Export XML naar JSON
 Dit script (index.js) maakt van een MAIS Flexis Export XML-bestand een JSON bestand.
 
 Voorbeeld output:
