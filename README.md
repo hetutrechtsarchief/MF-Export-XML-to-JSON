@@ -78,9 +78,9 @@ Voorbeeld output:
     "flexvelden": {
       "titel": "1 - 6.499 (fotografische documenten op opzetkartons)",
       "datecreated": "30-03-2018 12:16 25",
-      "usercreated": "MAISFLEXIS",
+      "usercreated": "...",
       "datemutated": "24-04-2018 15:32 11",
-      "usermutated": "MFDBLOM"
+      "usermutated": "..."
     }
   },
   //...
