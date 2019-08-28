@@ -10,7 +10,7 @@ const parser = new node_xml_stream();
 const filename = process.argv[2];
 
 if (!filename) return console.log('usage: ./index.js input_xml_file');
-if (!fs.existsSync(filename)) return console.log('File not foud: ' + filename);
+if (!fs.existsSync(filename)) return console.log('File not found: ' + filename);
 
 const isContextToegang = path.basename(filename).indexOf("CON_")==0;
 
