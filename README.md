@@ -60,7 +60,14 @@ Voorbeeld output:
         "synchroniseren_met_import",
         "archvormer",
         //......
-      ]
+      ],
+      "RUB": [
+        "auteursrechtovergedragen",
+        "digiverzoek",
+        "reageer_email",
+        //.....
+      ],
+      //......
     }
   },
 
