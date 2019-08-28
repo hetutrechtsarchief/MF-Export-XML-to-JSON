@@ -50,7 +50,7 @@ Voorbeeld output:
         "bouwwerk",
         "redvorm",
         "adres",
-        /*......*/
+        //......
       ],
       "COL": [
         "auteursrechtrechthebbende",
@@ -59,7 +59,7 @@ Voorbeeld output:
         "digiverzoek",
         "synchroniseren_met_import",
         "archvormer",
-        /*......*/
+        //......
       ],
       "RUB": [
         "auteursrechtovergedragen",
@@ -67,7 +67,7 @@ Voorbeeld output:
         "reageer_email",
         //.....
       ],
-      /*......*/
+      //......
     }
   },
 
@@ -90,6 +90,6 @@ Voorbeeld output:
       "usermutated": "..."
     }
   },
-  /*......*/
+  //...
 ]
 
