@@ -16,6 +16,7 @@ const isContextToegang = path.basename(filename).indexOf("CON_")==0;
 
 let tag,item,sub_item,is_sub,sub_tag,veldnaam,items=[],counter=0;
 let stream = fs.createReadStream(filename, 'UTF-8')
+let sbk;
 
 stream.on('close', function (err) {
   done();
@@ -27,14 +28,6 @@ stream.pipe(replaceStream('<ZR>', '\n')).pipe(parser); //fix incorrect XML befor
 parser.on('opentag', function(name, attrs) {
   tag = name.toLowerCase();
   if (name=='AHD') {
-    // if (item) {
-    //   if (item["fvd"]) {
-    //     item["fvd"] = item["fvd"].sort();
-    //     item["fvd"] = item["fvd"].map(function(v) {
-    //       return v.toLowerCase();
-    //     });
-    //   }
-    // }
     if (item) console.log(JSON.stringify(item,null,4) + ",");
 
     // if (counter++>10) done();  //voor nu maar een paar nodes
@@ -52,26 +45,12 @@ parser.on('opentag', function(name, attrs) {
     if (!isContextToegang && item && name=="REL") {
       if (!item["relaties"]) item["relaties"] = [];
       item["relaties"].push(sub_item);
-    } 
-    // else if (item && name=="FVD") {
-    //   if (!item[sub_tag]) item[sub_tag] = [];
-    //   item[sub_tag].push(sub_item);
-    // }
-    //  else if (item && /SBK|FVD/.test(name)) {
-    //   if (!item[sub_tag]) item[sub_tag] = [];
-    //   item[sub_tag].push(sub_item);
-    // }
+    }
   }
 });
 
 parser.on('closetag', function(name) {
-  // console.log("onclose:",tag,name);
-
   if (name==sub_tag) is_sub=false;
-  // if (tag=="fvd") {
-  
-    // sub_item = sub_item.sort();
-  // }
 });
 
 parser.on('text', function(text) {
@@ -86,10 +65,6 @@ parser.on('text', function(text) {
     if (!item["bestand"]) item["bestand"] = sub_item;
     sub_item[tag] = text;
   }
-  // else if (sub_tag=="FVD") {
-  //   if (!item["FVD"]) item["bestand"] = sub_item;
-  //   sub_item[tag] = text;
-  // }
   else if (sub_tag=="TWD") {
     if (!item["trefwoorden"]) item["trefwoorden"] = [];
     if (tag=="trefwoord") item["trefwoorden"].push(text);
@@ -99,29 +74,14 @@ parser.on('text', function(text) {
     sub_item[tag] = text;
   } 
   else if (sub_tag=="SBK") {    
-    if (!item["onderliggende_archiefeenheidssoorten"]) item["onderliggende_archiefeenheidssoorten"] = []; //archiefeenheidssoorten
-    if (tag=="code") item["onderliggende_archiefeenheidssoorten"].push(text);
+    if (!item["onderliggende_archiefeenheidssoorten"]) item["onderliggende_archiefeenheidssoorten"] = {}; //archiefeenheidssoorten
+    if (tag=="code") {
+      sbk = item["onderliggende_archiefeenheidssoorten"][text] = [];
+    }
   }
-  else if (sub_tag=="FVD") {
-    if (!item["onderliggende_flexvelden"]) item["onderliggende_flexvelden"] = []; // 
-    if (tag=="naam") item["onderliggende_flexvelden"].push(text);
-    item["onderliggende_flexvelden"] = item["onderliggende_flexvelden"].sort();
-    item["onderliggende_flexvelden"] = item["onderliggende_flexvelden"].filter(function(value,index,self) { return self.indexOf(value)===index });
-    item["onderliggende_flexvelden"] = item["onderliggende_flexvelden"].map(function(v) { return v.toLowerCase(); });
+  else if (sub_tag=="FVD") { //FVD's zijn de flexvelden per SBK
+    if (tag=="naam") sbk.push(text.toLowerCase());
   }
-
-  // else if (sub_tag=="FVD") {
-  //   if (!item["x"]) item["x"] = [];
-  //   if (tag=="naam") item["x"].push(text);
-  // }
-  // else if (sub_tag=="FVD") {
-  //   if (!item["allowed_awe"]) item["allowed_awe"] = []; //flex velden
-  //   if (tag=="naam") item["allowed_awe"].push(text);
-  //   // item[sub_tag][tag] = text;
-  // }
-  // else {
-  //   sub_item[tag] = text
-  // }
 });
 
 function done() {
