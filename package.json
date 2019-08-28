@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "dependencies": {
+    "args": "^5.0.1",
     "node-xml-stream": "^1.0.2",
     "rdf": "^4.1.0",
     "replacestream": "^4.0.3",
