@@ -75,9 +75,7 @@ parser.on('text', function(text) {
   } 
   else if (sub_tag=="SBK") {    
     if (!item["onderliggende_archiefeenheidssoorten"]) item["onderliggende_archiefeenheidssoorten"] = {}; //archiefeenheidssoorten
-    if (tag=="code") {
-      sbk = item["onderliggende_archiefeenheidssoorten"][text] = [];
-    }
+    if (tag=="code") sbk = item["onderliggende_archiefeenheidssoorten"][text] = [];
   }
   else if (sub_tag=="FVD") { //FVD's zijn de flexvelden per SBK
     if (tag=="naam") sbk.push(text.toLowerCase());
