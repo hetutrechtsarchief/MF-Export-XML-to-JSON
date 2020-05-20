@@ -12,7 +12,7 @@ const filename = process.argv[2];
 if (!filename) return console.log('usage: ./index.js input_xml_file');
 if (!fs.existsSync(filename)) return console.log('File not found: ' + filename);
 
-const isContextToegang = path.basename(filename).indexOf("CON_")==0;
+// const isContextToegang = path.basename(filename).indexOf("CON_")==0;
 
 let tag,item,sub_item,is_sub,sub_tag,veldnaam,items=[],counter=0;
 let stream = fs.createReadStream(filename, 'UTF-8')
@@ -28,11 +28,17 @@ stream.pipe(replaceStream('<ZR>', '\n')).pipe(parser); //fix incorrect XML befor
 parser.on('opentag', function(name, attrs) {
   tag = name.toLowerCase();
   if (name=='AHD') {
-    if (item) console.log(JSON.stringify(item,null,4) + ",");
+    if (item && item["skipoutput"]!="Ja") {
+
+      // item.GUID = item.guid;
+      // delete item.guid;
+
+      console.log(JSON.stringify(item,null,4) + ",");
+    }
 
     // if (counter++>10) done();  //voor nu maar een paar nodes
 
-    item = {};
+    item = { GUID:"" };
     // items.push(item);
   }
   else if (/<AWE>|<ABD>|<REL>|<TWD>|<FVD>|<AGR>|<SOS>|<SBK>/.test("<"+name+">")) {
@@ -42,7 +48,8 @@ parser.on('opentag', function(name, attrs) {
     sub_tag = name;
     sub_item = {};
 
-    if (!isContextToegang && item && name=="REL") {
+    // if (!isContextToegang && 
+    if (item && name=="REL") {
       if (!item["relaties"]) item["relaties"] = [];
       item["relaties"].push(sub_item);
     }
@@ -55,31 +62,39 @@ parser.on('closetag', function(name) {
 
 parser.on('text', function(text) {
   if (!item) return;
-  else if (!is_sub) item[tag] = text; //is property binnen een AHD
+  else if (!is_sub) {
+    if (tag=="guid") tag="GUID";
+    item[tag] = text; //is property binnen een AHD
+  }
   else if (sub_tag=="AWE") {
-    if (!item["flexvelden"]) item["flexvelden"] = {};
+    // if (!item["flexvelden"]) item["flexvelden"] = {};
     if (tag=="naam") veldnaam = text.toLowerCase();
-    else if (tag=="waarde") item["flexvelden"][veldnaam] = text
+    // else if (tag=="waarde") item["flexvelden"][veldnaam] = text
+    else if (tag=="waarde") item[veldnaam] = text
   }
   else if (sub_tag=="ABD") {
-    if (!item["bestand"]) item["bestand"] = sub_item;
-    sub_item[tag] = text;
+    // if (!item["bestand"]) item["bestand"] = sub_item;
+    item["bestand_"+tag] = text;
   }
   else if (sub_tag=="TWD") {
     if (!item["trefwoorden"]) item["trefwoorden"] = [];
     if (tag=="trefwoord") item["trefwoorden"].push(text);
   }
-  else if (!isContextToegang && sub_tag=="REL") {
+  // else if (!isContextToegang && 
+  else if (sub_tag=="REL") {
     if (!item["relaties"]) item["relaties"] = [];
     sub_item[tag] = text;
   } 
-  else if (sub_tag=="SBK") {    
-    if (!item["onderliggende_archiefeenheidssoorten"]) item["onderliggende_archiefeenheidssoorten"] = {}; //archiefeenheidssoorten
-    if (tag=="code") sbk = item["onderliggende_archiefeenheidssoorten"][text] = [];
-  }
-  else if (sub_tag=="FVD") { //FVD's zijn de flexvelden per SBK
-    if (tag=="naam") sbk.push(text.toLowerCase());
-  }
+
+
+
+  // else if (sub_tag=="SBK") {    
+  //   if (!item["onderliggende_archiefeenheidssoorten"]) item["onderliggende_archiefeenheidssoorten"] = {}; //archiefeenheidssoorten
+  //   if (tag=="code") sbk = item["onderliggende_archiefeenheidssoorten"][text] = [];
+  // }
+  // else if (sub_tag=="FVD") { //FVD's zijn de flexvelden per SBK
+  //   if (tag=="naam") sbk.push(text.toLowerCase());
+  // }
 });
 
 function done() {
