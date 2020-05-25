@@ -36,6 +36,8 @@ parser.on('opentag', function(name, attrs) {
       delete item["basismap"];
       delete item["opslaglokatie"];
       delete item["ahd_id_top"];
+      delete item["sde_id"];
+      delete item["sorteerblokkade"];
       delete item["reageer_email"];
       delete item["voorlopig_nummer"];
       delete item["volgnummer"];
