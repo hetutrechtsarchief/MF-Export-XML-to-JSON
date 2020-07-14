@@ -9,14 +9,13 @@ const node_xml_stream = require('node-xml-stream');
 const parser = new node_xml_stream();
 const filename = process.argv[2];
 
-if (!filename) return console.log('usage: ./index.js input_xml_file');
+if (!filename) return console.log('usage: mf2json input_xml_file');
 if (!fs.existsSync(filename)) return console.log('File not found: ' + filename);
 
-// const isContextToegang = path.basename(filename).indexOf("CON_")==0;
+const isContextToegang = path.basename(filename).indexOf("CON_")==0;
 
-let tag,item,sub_item,is_sub,sub_tag,veldnaam,items=[],counter=0;
+let tag,item,sub_item,is_sub,sub_tag,veldnaam,items=[],counter=0,sbk;
 let stream = fs.createReadStream(filename, 'UTF-8')
-let sbk;
 
 stream.on('close', function (err) {
   done();
@@ -75,7 +74,7 @@ parser.on('opentag', function(name, attrs) {
       //   }
       // }
       if (Array.isArray(item["relaties"])) {
-        item["relaties"] = item["relaties"].map(item => /PAP/.test(item.rel_stuk_aet_code) ? null : item.rel_adt_id + "/" + item.rel_top_code + "/" + item.ahd_id_rel);
+        item["relaties"] = item["relaties"].map(item => /PAP/.test(item.rel_stuk_aet_code) ? null : "rst:"+item.rel_rst_id + " id:" + item.ahd_id_rel); //item.rel_adt_id + "/" + item.rel_top_code + "/" + 
         item["relaties"] = item["relaties"].filter(item => item!=null);
       }
 
@@ -95,11 +94,10 @@ parser.on('opentag', function(name, attrs) {
     sub_tag = name;
     sub_item = {};
 
-    // if (!isContextToegang && 
-    if (item && name=="REL") {
-      if (!item["relaties"]) item["relaties"] = [];
-      item["relaties"].push(sub_item);
-    }
+    // if (!isContextToegang && item && name=="REL") {
+    //   if (!item["relaties"]) item["relaties"] = [];
+    //   item["relaties"].push(sub_item);
+    // }
   }
 });
 
