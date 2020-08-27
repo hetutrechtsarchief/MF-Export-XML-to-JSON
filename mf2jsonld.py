@@ -27,7 +27,10 @@ def getGUIDById(id):
   if row:
     return row[0];
 
-  raise ValueError('getGUIDById: Cannot find GUID for id='+id);
+  log.warning('getGUIDById: Cannot find GUID for id='+id)
+
+  return adt_id + '/' + id
+  #raise ValueError('getGUIDById: Cannot find GUID for id='+id);
 
 def setGUIDById(id,GUID):
   GUIDsById[id] = GUID # store in local lookup-table
@@ -45,12 +48,19 @@ def makeSafeURIPart(s):
   s = re.sub(r"[^a-zA-Z0-9\-]", "", s) # strip anything else now that is not a alpha or numeric character or a dash
   s = re.sub(r"^-|-$", "", s) # prevent starting or ending with . or -
   if len(s)==0:
-    raise ValueError("makeSafeURIPart results in empty string")
+    #raise ValueError("makeSafeURIPart results in empty string")
+    log.warning("makeSafeURIPart results in empty string")
     # fix this by replacing by 'x' for example
+    s="x"
   return s
 
 def saveItem(item):  # 'saves' and prints the object as JSON
+  if not item:
+    return
+
   global prevItem
+
+  # log.warning(repr(item))
 
   setGUIDById(item['id'], item['GUID'])
 
@@ -91,6 +101,11 @@ def saveItem(item):  # 'saves' and prints the object as JSON
         item[key] = value
     item.pop('rel')
 
+  # combine adt_id and id to one identifier
+  if 'adt_id' in item and 'id' in item:
+    item['id'] = item['adt_id'] + '/' + item['id']
+
+
   # if previous item and current item share the same parent connect them
   if (prevItem 
     and ('parentItem' in prevItem) 
@@ -111,17 +126,21 @@ def saveItem(item):  # 'saves' and prints the object as JSON
     if line in item:
       item.pop(line)
 
+
   # print item
   # print(dir(item))
-  print(json.dumps(item, indent=4, sort_keys=True, ensure_ascii=False),',')
+  print(json.dumps(item, indent=4, sort_keys=True, ensure_ascii=False))
 
 class Parse(HTMLParser):
    
   def handle_starttag(self, name, attrs):
-    global tag, item, sub_tag, sub_item, is_sub, sbk_items, sbk_item, fvd_item
+    global tag, item, sub_tag, sub_item, is_sub, sbk_items, sbk_item, fvd_item, itemIndex
     tag = name  # HTMLParser converts all tagnames to lower();
     if name=='ahd':
       if item:
+        if itemIndex>0:
+          print(',')
+        itemIndex = itemIndex + 1
         saveItem(item)
 
       # start a new item
@@ -258,6 +277,7 @@ GUIDsById = {} # local lookup table in RAM for id vs GUID
 # sbk_item = {}
 sbk_items = {} # dict instead of list
 fvd_item = {}
+itemIndex = 0
 
 # connect to database containing lookup-table for id vs GUID
 db = mysql.connector.connect(user=args.db[0],password=args.db[1],host=args.db[2],database=args.db[3])
@@ -277,7 +297,8 @@ with open(args.xml, 'r') as file:
     line = line.replace('<ZR>', '\n')
     xml = Parse()
     xml.feed(line)
-  saveItem(item)
+  print(',')
+  saveItem(item) # last one
   print(']}')
 
   # print(json.dumps(sbk_items, indent=4, sort_keys=True, ensure_ascii=False),',')
