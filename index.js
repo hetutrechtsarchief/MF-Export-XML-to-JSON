@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-//usage: $ ./index.js INPUT.xml
 
 // const args = require('args');
 const fs = require('fs');
@@ -94,10 +93,10 @@ parser.on('opentag', function(name, attrs) {
     sub_tag = name;
     sub_item = {};
 
-    // if (!isContextToegang && item && name=="REL") {
-    //   if (!item["relaties"]) item["relaties"] = [];
-    //   item["relaties"].push(sub_item);
-    // }
+    if (!isContextToegang && item && name=="REL") {
+      if (!item["relaties"]) item["relaties"] = [];
+      item["relaties"].push(sub_item);
+    }
   }
 });
 
