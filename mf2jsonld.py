@@ -17,29 +17,31 @@ import logging
 #   return dict(trefwoordsoort=twd['tst_id'], trefwoord=twd['trefwoord'])
 
 def getGUIDById(id):
-  if id in GUIDsById: # local lookup-table
-    return GUIDsById[id]
+  return adt_id + "/" + id
   
-  # if not found in local lookup-table, try database
-  sql = 'SELECT GUID FROM {} where adt_id="{}" and id="{}"'.format(tbl,adt_id,id)
-  dbcur.execute(sql)
-  row = dbcur.fetchone()
-  if row:
-    return row[0];
+  # if id in GUIDsById: # local lookup-table
+  #   return GUIDsById[id]
+  
+  # # if not found in local lookup-table, try database
+  # sql = 'SELECT GUID FROM {} where adt_id="{}" and id="{}"'.format(tbl,adt_id,id)
+  # dbcur.execute(sql)
+  # row = dbcur.fetchone()
+  # if row:
+  #   return row[0];
 
-  log.warning('getGUIDById: Cannot find GUID for id='+id)
+  # log.warning('getGUIDById: Cannot find GUID for id='+id)
 
-  return adt_id + '/' + id
-  #raise ValueError('getGUIDById: Cannot find GUID for id='+id);
+  # return adt_id + '/' + id
 
 def setGUIDById(id,GUID):
-  GUIDsById[id] = GUID # store in local lookup-table
+  return
+  # GUIDsById[id] = GUID # store in local lookup-table
 
-  # also store in database
-  sql = 'INSERT IGNORE INTO {} (id,adt_id,GUID) VALUES ("{}","{}","{}")'.format(tbl,id,adt_id,GUID)
+  # # also store in database
+  # sql = 'INSERT IGNORE INTO {} (id,adt_id,GUID) VALUES ("{}","{}","{}")'.format(tbl,id,adt_id,GUID)
 
-  dbcur.execute(sql)
-  db.commit()
+  # dbcur.execute(sql)
+  # db.commit()
 
 def makeSafeURIPart(s):
   # spreadsheet: [–’&|,\.() ""$/':;]"; "-") ;"-+";"-"); "[.-]$"; ""))
@@ -70,15 +72,23 @@ def saveItem(item):  # 'saves' and prints the object as JSON
     except ValueError as e:
       log.warning('Warning: cannot find GUID of parentItem for '+item['GUID'] + ': ' + repr(e)) 
 
+  if 'ahd_id_top' in item:
+    try:
+      item['rootItem'] = getGUIDById(item['ahd_id_top'])
+      item.pop('ahd_id_top')
+    except ValueError as e:
+      log.warning('Warning: cannot find GUID of rootItem for '+item['GUID'] + ': ' + repr(e)) 
+
+
   # Trefwoorden
   if 'twd' in item:
     for twd in item['twd']:
       itemId = 'twd'+twd['tst_id']
       if itemId in item:
         item[itemId] = [ item[itemId] ]
-        item[itemId].append(twd['trefwoord'])
+        item[itemId].append(uribase+'def/twd#'+makeSafeURIPart(twd['trefwoord']))
       else:
-        item[itemId] = twd['trefwoord']
+        item[itemId] = uribase+'def/twd#'+makeSafeURIPart(twd['trefwoord'])
     item.pop('twd')
 
   # Relaties
@@ -105,6 +115,12 @@ def saveItem(item):  # 'saves' and prints the object as JSON
   if 'adt_id' in item and 'id' in item:
     item['id'] = item['adt_id'] + '/' + item['id']
 
+    # external link to archive
+    item['link'] = proxy + item['adt_id'] + '/' + item['GUID']
+
+  # TODO: hier nog andere archiefeenheidsoorten aan toevoegen die een afbeelding hebben
+  if 'aet' in item and item['aet'] == 'ft':
+    item['thumb'] = proxy + 'thumb/' + item['adt_id'] + '/' + item['GUID']
 
   # if previous item and current item share the same parent connect them
   if (prevItem 
@@ -113,7 +129,7 @@ def saveItem(item):  # 'saves' and prints the object as JSON
     and (prevItem['parentItem']==item['parentItem']) 
     and ('GUID' in prevItem) 
     and not 'followsItem' in item):
-      item['followsItem'] = prevItem['GUID']
+      item['followsItem'] = prevItem['id'] #FIXME was:'GUID'
   prevItem = item
 
   # skip item if needed
@@ -257,9 +273,11 @@ log = logging.getLogger(__name__)
 argparser = argparse.ArgumentParser(description='MF Export XML to JSONLD')
 argparser.add_argument('--xml',help='input xml file', required=True)
 argparser.add_argument('--adt_id',help='organisation id', required=True)
+argparser.add_argument('--uribase',help='URI base (for example https://hetutrechtsarchief.nl/)', required=True)
+
 # argparser.add_argument('--rst',help='relatiesoorten csv file', required=True)
 argparser.add_argument('--skipfields',help='text file with fields to skip') #, required=True)
-argparser.add_argument('--db',help='use database for lookup. requires 4 params: user password host dbname', required=True, nargs=4)
+argparser.add_argument('--db',help='use database for lookup. requires 4 params: user password host dbname', nargs=4)
 args = argparser.parse_args()
 
 ### globals
@@ -278,10 +296,15 @@ GUIDsById = {} # local lookup table in RAM for id vs GUID
 sbk_items = {} # dict instead of list
 fvd_item = {}
 itemIndex = 0
-
+uribase = None # this is set by args.uribase
+proxy = 'http://proxy.archieven.nl/'
 # connect to database containing lookup-table for id vs GUID
-db = mysql.connector.connect(user=args.db[0],password=args.db[1],host=args.db[2],database=args.db[3])
-dbcur = db.cursor()
+if args.db:
+  db = mysql.connector.connect(user=args.db[0],password=args.db[1],host=args.db[2],database=args.db[3])
+  dbcur = db.cursor()
+
+# copy uribase from arguments
+uribase = args.uribase
 
 # load skip fields text file
 skipfields = []
