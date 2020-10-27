@@ -3,94 +3,57 @@ Dit script (index.js) maakt van een MAIS Flexis Export XML-bestand een JSON best
 
 Voorbeeld output:
 ```json
-[
-  {
-    "id": "41799421",
-    "aet": "COL",
-    "voorlopig_nummer": "0",
-    "code": "BEELDBANK_FOT_DOC_1A",
-    "volgnummer": "1",
-    "adt_id": "39",
-    "kot_code": "BES",
-    "uitleenprioriteit": "1",
-    "guid": "689F075A8A60E609E0534701000A426A",
-    "flexvelden": {
-      "titel": "Fotografische documenten 1A",
-      "datecreated": "30-03-2018 11:40 21",
-      "datemutated": "10-07-2018 09:01 52",
-      "usercreated": "...",
-      "usermutated": "...",
-      "reageer_email": "...",
-      "opslaglokatie": "fonc-hua",
-      "basismap": "Beeldbank",
-      "fnc_bep_toegang": "Ja",
-      "canmakephysic": "Ja"
-    },
-    "trefwoorden": [
-      "Beeldbank",
-      "Beeldbank HUA"
+{ "@context": "context.json", "@graph": [
+{
+    "GUID": "B8CA17023A134E8CA9C22DF85F149D39",
+    "aet": "col",
+    "code": "BEELDBANK",
+    "id": "131/5430230",
+    "link": "http://proxy.archieven.nl/131/B8CA17023A134E8CA9C22DF85F149D39",
+    "soortarchief": "Atlas en Beeldbank",
+    "titel": "BEELDBANK",
+    "volgnummer": "5430230"
+}
+,
+{
+    "GUID": "B8691E4090BC4486BCD3109D04FD915F",
+    "aet": "rub",
+    "datemutated": "03-06-2019 15:02",
+    "id": "131/5475188",
+    "link": "http://proxy.archieven.nl/131/B8691E4090BC4486BCD3109D04FD915F",
+    "parentItem": "131/5430230",
+    "rootItem": "131/5430230",
+    "titel": "Muziekvereniging Juliana Marken",
+    "volgnummer": "5430231"
+}
+,
+{
+    "GUID": "FF9F873466F411E39374CBE597083A45",
+    "aet": "ft",
+    "auteursrecht_beperkt": "lst_1061/Nee",
+    "auteursrechten": "vervaardiger",
+    "beschrijving": "STICK_ATLAS/Marken, muziekver. Juliana/F001793 Muziekvereniging Juliana",
+    "code": "WAT120003109",
+    "datecreated": "11-09-2018 08:54",
+    "datemutated": "03-06-2019 15:31",
+    "deelcollectie": "lst_2/Muziekvereniging-Juliana-Marken",
+    "herkomst": "Margreet Lenstra",
+    "id": "131/5484213",
+    "kadastrale_kaarten": "lst_1061/Nee",
+    "link": "http://proxy.archieven.nl/131/FF9F873466F411E39374CBE597083A45",
+    "parentItem": "131/5475188",
+    "photoid": "WAT120003109",
+    "rootItem": "131/5430230",
+    "rst_113": "131/5427754",
+    "rst_bes-rubr": "131/5430129",
+    "thumb": "http://proxy.archieven.nl/thumb/131/FF9F873466F411E39374CBE597083A45",
+    "tst_thwtw": [
+        "https://waterlandsarchief.nl/def/twd#muziek",
+        "https://waterlandsarchief.nl/def/twd#Marken"
     ],
-    "bestand": {
-      "pad_is_basispad": "0"
-    },
-    "relaties": [
-      {
-        "rel_lr": "AHD_ID2",
-        "ahd_id_rel": "40815696",
-        "rel_adt_id": "39",
-        "rel_top_aet_code": "ABK2",
-        "rel_top_code": "BEELDBANK",
-        "rel_rst_id": "6",
-        "rel_volgnr": "2",
-        "rel_volgnr2": "1"
-      }
-    ],
-    "onderliggende_archiefeenheidssoorten": {
-      "BTEK": [
-        "beschrijving",
-        "bouwwerk",
-        "redvorm",
-        "adres",
-        //......
-      ],
-      "COL": [
-        "auteursrechtrechthebbende",
-        "auteursrechtovergedragen",
-        "auteursrechtverlooptna",
-        "digiverzoek",
-        "synchroniseren_met_import",
-        "archvormer",
-        //......
-      ],
-      "RUB": [
-        "auteursrechtovergedragen",
-        "digiverzoek",
-        "reageer_email",
-        //.....
-      ],
-      //......
-    }
-  },
-
-  {
-    "id": "41799439",
-    "aet": "RUB",
-    "voorlopig_nummer": "0",
-    "volgnummer": "1",
-    "ahd_id": "41799421",
-    "adt_id": "39",
-    "ahd_id_top": "41799421",
-    "kot_code": "BES",
-    "uitleenprioriteit": "1",
-    "guid": "689F075A8A70E609E0534701000A426A",
-    "flexvelden": {
-      "titel": "1 - 6.499 (fotografische documenten op opzetkartons)",
-      "datecreated": "30-03-2018 12:16 25",
-      "usercreated": "...",
-      "datemutated": "24-04-2018 15:32 11",
-      "usermutated": "..."
-    }
-  },
-  //...
-]
+    "uiterlijkevorm": "lst_2/Foto-s",
+    "volgnummer": "5430236"
+}
+]}
+```
 
