@@ -5,43 +5,8 @@ import json,sys,os,argparse,time,re
 import mysql.connector
 from html.parser import HTMLParser
 import logging
-  
-# def relatieMapping(rel):
-#     return dict(relatiesoort=rel['rel_rst_id'], item=getGUIDById(rel['ahd_id_rel']))
-#   # try:
-#   #   return '<' + getRelatieSoort(rel['rel_rst_id']) + '> ' + getGUIDById(rel['ahd_id_rel'])  
-#   # except ValueError as e:
-#   #   log.warning('Warning: cannot find GUID of 'related' item for '+item['GUID']+ ': ' + repr(e)) 
-
-# def trefwoordMapping(twd):
-#   return dict(trefwoordsoort=twd['tst_id'], trefwoord=twd['trefwoord'])
-
-def getGUIDById(id):
-  return adt_id + "/" + id
-  
-  # if id in GUIDsById: # local lookup-table
-  #   return GUIDsById[id]
-  
-  # # if not found in local lookup-table, try database
-  # sql = 'SELECT GUID FROM {} where adt_id="{}" and id="{}"'.format(tbl,adt_id,id)
-  # dbcur.execute(sql)
-  # row = dbcur.fetchone()
-  # if row:
-  #   return row[0];
-
-  # log.warning('getGUIDById: Cannot find GUID for id='+id)
-
-  # return adt_id + '/' + id
-
-def setGUIDById(id,GUID):
-  return
-  # GUIDsById[id] = GUID # store in local lookup-table
-
-  # # also store in database
-  # sql = 'INSERT IGNORE INTO {} (id,adt_id,GUID) VALUES ("{}","{}","{}")'.format(tbl,id,adt_id,GUID)
-
-  # dbcur.execute(sql)
-  # db.commit()
+import csv
+import datetime
 
 def makeSafeURIPart(s):
   # spreadsheet: [–’&|,\.() ""$/':;]"; "-") ;"-+";"-"); "[.-]$"; ""))
@@ -56,6 +21,15 @@ def makeSafeURIPart(s):
     s="x"
   return s
 
+def getIdentifier(id):
+  return adt_id + "/" + id
+
+def getTrefwoordSoortId(id):
+  return "tst_" + (trefwoordsoorten[id] if id in trefwoordsoorten else id)
+
+def getRelatieSoortId(id):
+  return "rst_" + (relatiesoorten[id] if id in relatiesoorten else id) 
+
 def saveItem(item):  # 'saves' and prints the object as JSON
   if not item:
     return
@@ -64,17 +38,17 @@ def saveItem(item):  # 'saves' and prints the object as JSON
 
   # log.warning(repr(item))
 
-  setGUIDById(item['id'], item['GUID'])
+  # setGUIDById(item['id'], item['GUID'])
 
   if 'ahd_id' in item:
     try:
-      item['parentItem'] = getGUIDById(item['ahd_id'])
+      item['parentItem'] = getIdentifier(item['ahd_id'])
     except ValueError as e:
       log.warning('Warning: cannot find GUID of parentItem for '+item['GUID'] + ': ' + repr(e)) 
 
   if 'ahd_id_top' in item:
     try:
-      item['rootItem'] = getGUIDById(item['ahd_id_top'])
+      item['rootItem'] = getIdentifier(item['ahd_id_top'])
       item.pop('ahd_id_top')
     except ValueError as e:
       log.warning('Warning: cannot find GUID of rootItem for '+item['GUID'] + ': ' + repr(e)) 
@@ -83,7 +57,9 @@ def saveItem(item):  # 'saves' and prints the object as JSON
   # Trefwoorden
   if 'twd' in item:
     for twd in item['twd']:
-      itemId = 'twd'+twd['tst_id']
+      # itemId = 'twd'+twd['tst_id']
+      itemId = getTrefwoordSoortId(twd['tst_id'])
+
       if itemId in item:
         item[itemId] = [ item[itemId] ]
         item[itemId].append(uribase+'def/twd#'+makeSafeURIPart(twd['trefwoord']))
@@ -94,14 +70,9 @@ def saveItem(item):  # 'saves' and prints the object as JSON
   # Relaties
   if 'rel' in item:
     for rel in item['rel']:
-      key = 'rel'+rel['rel_rst_id']
-
-      #CHECKME
-      try:
-        value = getGUIDById(rel['ahd_id_rel'])
-      except ValueError as e:
-        value = adt_id + "/" + rel['ahd_id_rel']
-
+      # key = 'rel'+rel['rel_rst_id']
+      key = getRelatieSoortId(rel['rel_rst_id'])
+      value = getIdentifier(rel['ahd_id_rel'])
 
       if key in item:
         if not type(item[key]) is list:
@@ -113,7 +84,7 @@ def saveItem(item):  # 'saves' and prints the object as JSON
 
   # combine adt_id and id to one identifier
   if 'adt_id' in item and 'id' in item:
-    item['id'] = item['adt_id'] + '/' + item['id']
+    item['id'] = getIdentifier(item['id']) # item['adt_id'] + '/' + 
 
     # external link to archive
     item['link'] = proxy + item['adt_id'] + '/' + item['GUID']
@@ -137,14 +108,19 @@ def saveItem(item):  # 'saves' and prints the object as JSON
     if item['skipoutput']=='Ja':
       return
 
+  # valid datemutated
+  if "datemutated" in item:
+    item['datemutated'] = item['datemutated'][:16]   # remove rubbish from date
+  
+  # valid datecreated
+  if "datecreated" in item:
+    item['datecreated'] = item['datecreated'][:16];  # remove rubbish from date
+
   # remove properties from dict that are on the skipfields list
   for line in skipfields:
     if line in item:
       item.pop(line)
 
-
-  # print item
-  # print(dir(item))
   print(json.dumps(item, indent=4, sort_keys=True, ensure_ascii=False))
 
 class Parse(HTMLParser):
@@ -217,7 +193,7 @@ class Parse(HTMLParser):
           item[veldnaam] = text
 
           if aet and aet in sbk_items and veldnaam in sbk_items[aet]:
-            item[veldnaam] = "lst" + sbk_items[aet][veldnaam] + "/" + makeSafeURIPart(item[veldnaam])
+            item[veldnaam] = "lst_" + sbk_items[aet][veldnaam] + "/" + makeSafeURIPart(item[veldnaam])
 
         veldnaam = ''
     
@@ -272,12 +248,12 @@ log = logging.getLogger(__name__)
 # parse command line parameters/arguments
 argparser = argparse.ArgumentParser(description='MF Export XML to JSONLD')
 argparser.add_argument('--xml',help='input xml file', required=True)
-argparser.add_argument('--adt_id',help='organisation id', required=True)
+argparser.add_argument('--adt_id',help='archief id', required=True)
 argparser.add_argument('--uribase',help='URI base (for example https://hetutrechtsarchief.nl/)', required=True)
 
-# argparser.add_argument('--rst',help='relatiesoorten csv file', required=True)
 argparser.add_argument('--skipfields',help='text file with fields to skip') #, required=True)
-argparser.add_argument('--db',help='use database for lookup. requires 4 params: user password host dbname', nargs=4)
+argparser.add_argument('--relatiesoorten',help='csv file with relatiesoorten (format: 39,STRN-BES)') #, required=True)
+argparser.add_argument('--trefwoordsoorten',help='csv with trefwoordsoorten (format: 10,THTWD) ') #, required=True)
 args = argparser.parse_args()
 
 ### globals
@@ -292,16 +268,11 @@ prevItem = None
 is_sub = False
 lijsten = []
 GUIDsById = {} # local lookup table in RAM for id vs GUID
-# sbk_item = {}
 sbk_items = {} # dict instead of list
 fvd_item = {}
 itemIndex = 0
 uribase = None # this is set by args.uribase
 proxy = 'http://proxy.archieven.nl/'
-# connect to database containing lookup-table for id vs GUID
-if args.db:
-  db = mysql.connector.connect(user=args.db[0],password=args.db[1],host=args.db[2],database=args.db[3])
-  dbcur = db.cursor()
 
 # copy uribase from arguments
 uribase = args.uribase
@@ -312,6 +283,22 @@ if args.skipfields:
   with open(args.skipfields, 'r') as file:
     for line in file:
       skipfields.append(line.strip())
+
+# relatiesoorten
+relatiesoorten = {}  # dict
+if args.relatiesoorten:   
+  with open(args.relatiesoorten, newline='') as csvfile:
+    rows = csv.reader(csvfile, delimiter=',')
+    for row in rows:
+      relatiesoorten[row[0]] = row[1].lower()
+
+# trefwoordsoorten
+trefwoordsoorten = {}  # dict
+if args.trefwoordsoorten:   
+  with open(args.trefwoordsoorten, newline='') as csvfile:
+    rows = csv.reader(csvfile, delimiter=',')
+    for row in rows:
+      trefwoordsoorten[row[0]] = row[1].lower()
 
 # open xml file and read lines
 with open(args.xml, 'r') as file:
