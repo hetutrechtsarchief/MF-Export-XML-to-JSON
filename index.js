@@ -1,5 +1,20 @@
 #!/usr/bin/env node
 
+/*
+
+=============================
+
+Dit bestand wordt niet meer onderhouden.
+Het nieuwe script is 'mf2jsonld.py'
+
+=============================
+
+
+*/
+
+
+
+
 // const args = require('args');
 const fs = require('fs');
 const path = require('path');
