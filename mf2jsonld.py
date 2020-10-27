@@ -2,7 +2,6 @@
 
 import xml.parsers.expat
 import json,sys,os,argparse,time,re
-import mysql.connector
 from html.parser import HTMLParser
 import logging
 import csv
@@ -35,10 +34,6 @@ def saveItem(item):  # 'saves' and prints the object as JSON
     return
 
   global prevItem
-
-  # log.warning(repr(item))
-
-  # setGUIDById(item['id'], item['GUID'])
 
   if 'ahd_id' in item:
     try:
