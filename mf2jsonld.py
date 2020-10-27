@@ -1,11 +1,6 @@
 #!/usr/bin/env python3
-
-import xml.parsers.expat
-import json,sys,os,argparse,time,re
+import csv,json,sys,os,argparse,time,re
 from html.parser import HTMLParser
-import logging
-import csv
-import datetime
 
 def makeSafeURIPart(s):
   # spreadsheet: [–’&|,\.() ""$/':;]"; "-") ;"-+";"-"); "[.-]$"; ""))
@@ -14,10 +9,8 @@ def makeSafeURIPart(s):
   s = re.sub(r"[^a-zA-Z0-9\-]", "", s) # strip anything else now that is not a alpha or numeric character or a dash
   s = re.sub(r"^-|-$", "", s) # prevent starting or ending with . or -
   if len(s)==0:
-    #raise ValueError("makeSafeURIPart results in empty string")
-    log.warning("makeSafeURIPart results in empty string")
-    # fix this by replacing by 'x' for example
-    s="x"
+    # print("makeSafeURIPart results in empty string",file=sys.stderr)
+    s="x"  # ignore this by replacing by 'x' for example
   return s
 
 def getIdentifier(id):
@@ -39,14 +32,14 @@ def saveItem(item):  # 'saves' and prints the object as JSON
     try:
       item['parentItem'] = getIdentifier(item['ahd_id'])
     except ValueError as e:
-      log.warning('Warning: cannot find GUID of parentItem for '+item['GUID'] + ': ' + repr(e)) 
+      print('Warning: cannot find GUID of parentItem for '+item['GUID'] + ': ' + repr(e), file=sys.stderr)
 
   if 'ahd_id_top' in item:
     try:
       item['rootItem'] = getIdentifier(item['ahd_id_top'])
       item.pop('ahd_id_top')
     except ValueError as e:
-      log.warning('Warning: cannot find GUID of rootItem for '+item['GUID'] + ': ' + repr(e)) 
+      print('Warning: cannot find GUID of rootItem for '+item['GUID'] + ': ' + repr(e), file=sys.stderr)
 
 
   # Trefwoorden
@@ -216,16 +209,6 @@ class Parse(HTMLParser):
     elif sub_tag == 'fvd':
       fvd_item[name] = text
 
-    # elif sub_tag == 
-
-    # elif sub_tag == 'fvd':
-    #   sbk_item[name] = "X:"+text
-
-    # elif sub_tag == 'fvd':
-    #   # fvd_item[name] = text
-    #   if name!=sub_tag:
-    #     sub_item[name] = text; 
-
     text = ''
 
     if name == sub_tag:
@@ -235,10 +218,6 @@ class Parse(HTMLParser):
 #######################################################
 ## MAIN 
 #######################################################
-
-# prepare for logging warnings and errors
-logging.basicConfig(format='%(message)s')
-log = logging.getLogger(__name__)
 
 # parse command line parameters/arguments
 argparser = argparse.ArgumentParser(description='MF Export XML to JSONLD')
@@ -305,6 +284,4 @@ with open(args.xml, 'r') as file:
   print(',')
   saveItem(item) # last one
   print(']}')
-
-  # print(json.dumps(sbk_items, indent=4, sort_keys=True, ensure_ascii=False),',')
 
