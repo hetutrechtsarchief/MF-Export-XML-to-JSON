@@ -1,7 +1,18 @@
-# van MAIS Flexis Export XML naar JSON
+# van MAIS-Flexis Export XML naar JSON
 Dit script (index.js) maakt van een MAIS Flexis Export XML-bestand een JSON bestand.
 
-Voorbeeld output:
+## Usage
+```bash
+~/MFXML-to-JSONLD/mf2jsonld.py \
+  --xml mfxml/BEELDBANK_14_131_flexis-50000.txt \
+  --uribase https://waterlandsarchief.nl/ \
+  --adt_id 131 \
+  --skipfields skipfields.csv \
+  --relatiesoorten relatiesoorten.csv \
+  --trefwoordsoorten trefwoordsoorten.csv 
+```
+
+## Voorbeeld output:
 ```json
 { "@context": "context.json", "@graph": [
 {
