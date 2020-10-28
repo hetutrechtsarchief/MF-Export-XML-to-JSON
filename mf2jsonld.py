@@ -14,7 +14,7 @@ def makeSafeURIPart(s):
   return s
 
 def getIdentifier(id):
-  return adt_id + "/" + id
+  return "r"+id  # adt_id + "/" + id
 
 def getTrefwoordSoortId(id):
   return "tst_" + (trefwoordsoorten[id] if id in trefwoordsoorten else id)
@@ -46,20 +46,29 @@ def saveItem(item):  # 'saves' and prints the object as JSON
   if 'twd' in item:
     for twd in item['twd']:
       # itemId = 'twd'+twd['tst_id']
-      itemId = getTrefwoordSoortId(twd['tst_id'])
+      # itemId = getTrefwoordSoortId(twd['tst_id'])
+
+      itemId = "trefwoord" # twd is al bezet...
+      twdURI = uribase+'id/tst'+twd['tst_id']+"_"+makeSafeURIPart(twd['trefwoord'])
+      # print(twdURI,file=sys.stderr)
+
+      extraObjecten[ twdURI ] = { "id": twdURI, "label": twd['trefwoord'], "parentItem": uribase+'id/tst'+twd['tst_id'] }
 
       if itemId in item:
         item[itemId] = [ item[itemId] ]
-        item[itemId].append(uribase+'def/twd#'+makeSafeURIPart(twd['trefwoord']))
+        item[itemId].append(twdURI)
       else:
-        item[itemId] = uribase+'def/twd#'+makeSafeURIPart(twd['trefwoord'])
+        item[itemId] = twdURI
+
     item.pop('twd')
 
   # Relaties
   if 'rel' in item:
     for rel in item['rel']:
       # key = 'rel'+rel['rel_rst_id']
-      key = getRelatieSoortId(rel['rel_rst_id'])
+      # key = getRelatieSoortId(rel['rel_rst_id'])
+      key = "relatie"  # uribase+'def/rst'+rel['rel_rst_id']
+
       value = getIdentifier(rel['ahd_id_rel'])
 
       if key in item:
@@ -103,6 +112,10 @@ def saveItem(item):  # 'saves' and prints the object as JSON
   # valid datecreated
   if "datecreated" in item:
     item['datecreated'] = item['datecreated'][:16];  # remove rubbish from date
+
+  # aet
+  if "aet" in item:
+    item['aet'] = uribase + 'def/aet#' + item['aet']
 
   # remove properties from dict that are on the skipfields list
   for line in skipfields:
@@ -157,7 +170,7 @@ class Parse(HTMLParser):
     text = text + txt.strip()
 
   def handle_endtag(self, name):
-    global text, is_sub, tag, sub_tag, veldnaam, fvd_item, aet
+    global text, is_sub, tag, sub_tag, veldnaam, fvd_item, aet, lov, extraObjecten
 
     if not item:
       return
@@ -181,7 +194,11 @@ class Parse(HTMLParser):
           item[veldnaam] = text
 
           if aet and aet in sbk_items and veldnaam in sbk_items[aet]:
-            item[veldnaam] = "lst_" + sbk_items[aet][veldnaam] + "/" + makeSafeURIPart(item[veldnaam])
+            veldWaarde = item[veldnaam]
+            veldURI = uribase + "id/lst" + sbk_items[aet][veldnaam] + "_" + makeSafeURIPart(veldWaarde)
+            item[veldnaam] = veldURI
+            lov[veldnaam] = 1 
+            extraObjecten[ veldURI ] = { "id": veldURI, "label": veldWaarde, "parentItem": uribase + "id/lst" + sbk_items[aet][veldnaam] }
 
         veldnaam = ''
     
@@ -240,8 +257,8 @@ aet = ''
 item = None
 prevItem = None
 is_sub = False
-lijsten = []
-GUIDsById = {} # local lookup table in RAM for id vs GUID
+lov = {}  # dictonary (alleen keys) met unieke veldnamen waarbij de waarden uit een lijst komen (en dus geURIficeerd worden)
+extraObjecten = {}
 sbk_items = {} # dict instead of list
 fvd_item = {}
 itemIndex = 0
@@ -283,5 +300,16 @@ with open(args.xml, 'r') as file:
     xml.feed(line)
   print(',')
   saveItem(item) # last one
+  print(',')
+
+  # labels=[]
+  for obj in extraObjecten:
+    print(json.dumps(extraObjecten[obj], indent=4, sort_keys=True, ensure_ascii=False))
+    print(",")
+
+  print("{ }")
   print(']}')
 
+
+for lov in lov.keys():
+  print("lov: " + lov,file=sys.stderr)
