@@ -124,7 +124,7 @@ def saveItem(item):  # 'saves' and prints the object as JSON
     if line in item:
       item.pop(line)
 
-  print(json.dumps(item, indent=4, sort_keys=True, ensure_ascii=False))
+  print(json.dumps(item, indent=4)) #, sort_keys=True)) #, ensure_ascii=False))
   numRecords = numRecords + 1
 
 class Parse(HTMLParser):
@@ -246,8 +246,8 @@ argparser.add_argument('--adt_id',help='archief id', required=True)
 argparser.add_argument('--uribase',help='URI base (for example https://hetutrechtsarchief.nl/)', required=True)
 
 argparser.add_argument('--skipfields',help='text file with fields to skip') #, required=True)
-argparser.add_argument('--relatiesoorten',help='csv file with relatiesoorten (format: 39,STRN-BES)') #, required=True)
-argparser.add_argument('--trefwoordsoorten',help='csv with trefwoordsoorten (format: 10,THTWD) ') #, required=True)
+# argparser.add_argument('--relatiesoorten',help='csv file with relatiesoorten (format: 39,STRN-BES)') #, required=True)
+# argparser.add_argument('--trefwoordsoorten',help='csv with trefwoordsoorten (format: 10,THTWD) ') #, required=True)
 args = argparser.parse_args()
 
 ### globals
@@ -280,20 +280,20 @@ if args.skipfields:
       skipfields.append(line.strip())
 
 # relatiesoorten
-relatiesoorten = {}  # dict
-if args.relatiesoorten:   
-  with open(args.relatiesoorten, newline='') as csvfile:
-    rows = csv.reader(csvfile, delimiter=',')
-    for row in rows:
-      relatiesoorten[row[0]] = row[1].lower()
+# relatiesoorten = {}  # dict
+# if args.relatiesoorten:   
+#   with open(args.relatiesoorten, newline='') as csvfile:
+#     rows = csv.reader(csvfile, delimiter=',')
+#     for row in rows:
+#       relatiesoorten[row[0]] = row[1].lower()
 
-# trefwoordsoorten
-trefwoordsoorten = {}  # dict
-if args.trefwoordsoorten:   
-  with open(args.trefwoordsoorten, newline='') as csvfile:
-    rows = csv.reader(csvfile, delimiter=',')
-    for row in rows:
-      trefwoordsoorten[row[0]] = row[1].lower()
+# # trefwoordsoorten
+# trefwoordsoorten = {}  # dict
+# if args.trefwoordsoorten:   
+#   with open(args.trefwoordsoorten, newline='') as csvfile:
+#     rows = csv.reader(csvfile, delimiter=',')
+#     for row in rows:
+#       trefwoordsoorten[row[0]] = row[1].lower()
 
 # open xml file and read lines
 with open(args.xml, 'r', encoding="utf-8") as file:
@@ -314,7 +314,7 @@ with open(args.xml, 'r', encoding="utf-8") as file:
     print(',')
 
   for obj in extraObjecten:
-    print(json.dumps(extraObjecten[obj], indent=4, sort_keys=True, ensure_ascii=False))
+    print(json.dumps(extraObjecten[obj], indent=4)) #, sort_keys=True)) #, ensure_ascii=False))
     print(",")
 
   if len(extraObjecten)>0:
