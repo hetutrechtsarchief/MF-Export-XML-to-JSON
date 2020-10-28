@@ -23,6 +23,8 @@ def getRelatieSoortId(id):
   return "rst_" + (relatiesoorten[id] if id in relatiesoorten else id) 
 
 def saveItem(item):  # 'saves' and prints the object as JSON
+  global numRecords
+
   if not item:
     return
 
@@ -123,6 +125,7 @@ def saveItem(item):  # 'saves' and prints the object as JSON
       item.pop(line)
 
   print(json.dumps(item, indent=4, sort_keys=True, ensure_ascii=False))
+  numRecords = numRecords + 1
 
 class Parse(HTMLParser):
    
@@ -257,6 +260,7 @@ aet = ''
 item = None
 prevItem = None
 is_sub = False
+numRecords = 0
 lov = {}  # dictonary (alleen keys) met unieke veldnamen waarbij de waarden uit een lijst komen (en dus geURIficeerd worden)
 extraObjecten = {}
 sbk_items = {} # dict instead of list
@@ -292,22 +296,30 @@ if args.trefwoordsoorten:
       trefwoordsoorten[row[0]] = row[1].lower()
 
 # open xml file and read lines
-with open(args.xml, 'r') as file:
+with open(args.xml, 'r', encoding="utf-8") as file:
   print('{ "@context": "context.json", "@graph": [')
+  xml = Parse()
+  count = 0
   for line in file:
     line = line.replace('<ZR>', '\n')
-    xml = Parse()
     xml.feed(line)
-  print(',')
-  saveItem(item) # last one
-  print(',')
 
-  # labels=[]
+  print(numRecords,file=sys.stderr)
+  if numRecords>0:
+    print(',')
+
+  saveItem(item) # last one
+
+  if numRecords>0 and len(extraObjecten)>0:
+    print(',')
+
   for obj in extraObjecten:
     print(json.dumps(extraObjecten[obj], indent=4, sort_keys=True, ensure_ascii=False))
     print(",")
 
-  print("{ }")
+  if len(extraObjecten)>0:
+    print("{ }")
+
   print(']}')
 
 
