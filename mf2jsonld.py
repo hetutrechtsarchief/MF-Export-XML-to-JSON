@@ -54,7 +54,7 @@ def saveItem(item):  # 'saves' and prints the object as JSON
       twdURI = uribase+'id/tst'+twd['tst_id']+"_"+makeSafeURIPart(twd['trefwoord'])
       # print(twdURI,file=sys.stderr)
 
-      extraObjecten[ twdURI ] = { "id": twdURI, "label": twd['trefwoord'], "parentItem": uribase+'id/tst'+twd['tst_id'] }
+      extraObjecten[ twdURI ] = { "id": twdURI, "label": twd['trefwoord'], "parentItem": uribase+'id/tst#'+twd['tst_id'] }
 
       if itemId in item:
         item[itemId] = [ item[itemId] ]
@@ -201,7 +201,7 @@ class Parse(HTMLParser):
             veldURI = uribase + "id/lst" + sbk_items[aet][veldnaam] + "_" + makeSafeURIPart(veldWaarde)
             item[veldnaam] = veldURI
             lov[veldnaam] = 1 
-            extraObjecten[ veldURI ] = { "id": veldURI, "label": veldWaarde, "parentItem": uribase + "id/lst" + sbk_items[aet][veldnaam] }
+            extraObjecten[ veldURI ] = { "id": veldURI, "label": veldWaarde, "parentItem": uribase + "id/lst#" + sbk_items[aet][veldnaam] }
 
         veldnaam = ''
     
